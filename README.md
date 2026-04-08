@@ -1,116 +1,257 @@
-# Bank Staff RAG
+# 🏦 Bank Staff RAG System
 
-A Retrieval-Augmented Generation (RAG) system designed for bank staff to query and retrieve information from PDF documents using natural language.
+A Retrieval-Augmented Generation (RAG) system that helps bank staff query internal documents (policies, rules, etc.) using natural language.
 
-## Features
+---
 
-- **PDF Document Processing**: Load and process PDF files from a specified directory
-- **Text Chunking**: Split documents into manageable chunks with configurable overlap
-- **Vector Embeddings**: Generate embeddings using Sentence Transformers (all-MiniLM-L6-v2)
-- **Vector Database**: Store and retrieve documents using ChromaDB
-- **Semantic Search**: Perform similarity search on document chunks
-- **RAG Pipeline**: End-to-end retrieval and generation pipeline
+## 🚧 Current Status
 
-## Project Structure
+### ✅ Completed (Backend Ready)
+
+* PDF processing and cleaning
+* Intelligent chunking
+* Embeddings using **BAAI/bge-small-en-v1.5**
+* Vector database using **Chroma**
+* Optimized retrieval system (no duplicates, filtered results)
+
+👉 **Important:**
+You do NOT need to rebuild embeddings or vector database.
+
+---
+
+## 📁 Project Structure
 
 ```
 bank_staff_rag/
-├── main.py                 # Main entry point
-├── pyproject.toml          # Project configuration and dependencies
-├── requirements.txt        # Additional dependencies
-├── README.md              # This file
+│
 ├── data/
-│   ├── pdf/               # Directory for PDF documents
-│   └── vector_store/      # Generated vector database (ignored in git)
-├── notebook/
-│   ├── pdf_loader.ipynb   # Complete RAG pipeline implementation
-│   └── document.ipynb     # Data ingestion experiments
-└── .gitignore             # Git ignore rules
+│   └── pdf/                   # Input PDF documents
+│
+├── vector_store/              # Prebuilt Chroma DB (READY)
+│
+├── ingestion/
+│   ├── loader.py
+│   ├── chunker.py
+│   ├── embedder.py
+│   └── build_index.py
+│
+├── retrieval/
+│   └── retriever.py           # ⭐ MAIN MODULE
+│
+├── llm/                       # (To be implemented)
+├── app/                       # (To be implemented)
+│
+├── test_retriever.py
+├── pyproject.toml
+└── README.md
 ```
 
-## Installation
+---
 
-1. **Clone the repository**:
-   ```bash
-   git clone <repository-url>
-   cd bank-staff-rag
-   ```
+## ⚙️ Setup Instructions
 
-2. **Set up Python environment**:
-   ```bash
-   # Using uv (recommended)
-   uv sync
+We are using **uv (Python package manager)** for environment setup.
 
-   # Or using pip
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
+---
 
-3. **Install dependencies**:
-   ```bash
-   uv pip install -e .
-   # or
-   pip install -e .
-   ```
+### 🔹 Step 1 — Install uv
 
-## Usage
+```bash
+pip install uv
+```
 
-### Running the Notebooks
+---
 
-1. **PDF Loader Pipeline** (`notebook/pdf_loader.ipynb`):
-   - Loads PDF documents from `data/pdf/`
-   - Splits text into chunks
-   - Generates embeddings
-   - Creates vector store
-   - Implements RAG retriever for querying
+### 🔹 Step 2 — Clone Repository
 
-2. **Data Ingestion** (`notebook/document.ipynb`):
-   - Experimental notebook for document loading
-   - Uses LangChain document loaders
+```bash
+git clone https://github.com/YOUR_USERNAME/bank-staff-rag.git
+cd bank-staff-rag
+```
 
-### Key Components
+---
 
-#### EmbeddingManager
-- Loads Sentence Transformer model
-- Generates embeddings for text chunks
-- Configurable model selection
+### 🔹 Step 3 — Install Dependencies
 
-#### VectorStore
-- Manages ChromaDB collection
-- Adds documents with metadata
-- Performs similarity search
+```bash
+uv sync
+```
 
-#### RAGRetriever
-- Combines vector search with document retrieval
-- Returns relevant document chunks for queries
+This will:
 
-## Configuration
+* Create a virtual environment
+* Install all required dependencies
 
-- **Chunk Size**: Default 1000 characters with 200 overlap
-- **Embedding Model**: `all-MiniLM-L6-v2` (384 dimensions)
-- **Vector Database**: ChromaDB with persistent storage
+---
 
-## Dependencies
+### 🔹 Step 4 — Activate Environment
 
-- `langchain` - Framework for LLM applications
-- `sentence-transformers` - Text embeddings
-- `chromadb` - Vector database
-- `pymupdf` - PDF processing
-- `faiss-cpu` - Vector similarity search
-- `ipykernel` - Jupyter notebook support
+**Windows:**
 
-## Development
+```bash
+.venv\Scripts\activate
+```
 
-- Python 3.13+
-- Uses `uv` for dependency management
-- Jupyter notebooks for experimentation
-- ChromaDB for vector storage
+**Mac/Linux:**
 
-## License
+```bash
+source .venv/bin/activate
+```
 
-[Add license information here]
+---
 
-## Contributing
+### 🔹 Step 5 — Test the System
 
-[Add contribution guidelines here]
+```bash
+uv run -m test_retriever
+```
+
+You should see relevant document chunks printed.
+
+---
+
+## 🔍 How to Use Retrieval
+
+```python
+from retrieval.retriever import retrieve
+
+chunks = retrieve("What is KYC?")
+```
+
+---
+
+### 📦 Output Format
+
+```python
+[
+  {
+    "content": "...",
+    "metadata": {
+      "page": 14,
+      "source": "document.pdf"
+    },
+    "score": 0.32
+  }
+]
+```
+
+---
+
+## 🚀 Team Responsibilities
+
+---
+
+### 👤 LLM Module (Person 2)
+
+Create file:
+
+```
+llm/model.py
+```
+
+Implement:
+
+```python
+def generate_answer(query, chunks):
+    """
+    Input:
+    - query (str)
+    - chunks (retrieved context)
+
+    Output:
+    - final answer (str)
+    """
+```
+
+Requirements:
+
+* Use `chunk["content"]` as context
+* Answer ONLY from context
+* If answer not found → return "I don't know"
+* Avoid hallucination
+
+---
+
+### 👤 UI Module (Person 3)
+
+Create file:
+
+```
+app/streamlit_app.py
+```
+
+Flow:
+
+```python
+query = user_input
+chunks = retrieve(query)
+answer = generate_answer(query, chunks)
+```
+
+Display:
+
+* Final answer
+* Sources (page + document name)
+
+---
+
+## 🔗 System Flow
+
+```
+User → UI → retrieve() → chunks → LLM → answer → UI
+```
+
+---
+
+## ⚠️ Important Notes
+
+❌ Do NOT:
+
+* Rebuild embeddings
+* Modify vector_store
+* Use notebooks for execution
+
+✅ Use only:
+
+```python
+retrieve(query)
+```
+
+---
+
+## 🧪 Debug Mode
+
+```python
+retrieve("KYC documents", debug=True)
+```
+
+---
+
+## 🧠 Key Insight
+
+This project depends on:
+
+👉 **Retrieval quality, not just LLM**
+
+---
+
+## 📌 Future Improvements
+
+* Better chunking (section-aware)
+* Reranking models
+* Hybrid search (keyword + embeddings)
+* Conversation memory
+
+---
+
+## 👥 Team Status
+
+* Retrieval → ✅ Completed
+* LLM → 🔄 In Progress
+* UI → 🔄 In Progress
+
+---
+
+## 📞 Contact
+
+If something breaks, contact the project owner.

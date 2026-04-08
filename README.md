@@ -65,7 +65,7 @@ pip install uv
 ### 🔹 Step 2 — Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/bank-staff-rag.git
+git clone https://github.com/Sdhandre/RBI-Bank-staff-RAG
 cd bank-staff-rag
 ```
 

@@ -8,7 +8,7 @@ from langchain_chroma import Chroma
 
 def build_vectorstore(
     data_path: str = "data/pdf",
-    persist_directory: str = "vector_store_ibm30b"
+    persist_directory: str = "vector_store_gemini001"
 ):
     """
     Builds and persists the Chroma vector database.
@@ -31,14 +31,24 @@ def build_vectorstore(
     print("🔹 Loading embedding model...")
     embedding = get_embedding_model()
 
-    print("🔹 Creating vector store (Chroma)...")
-    vectordb = Chroma.from_documents(
-        documents=chunks,
-        embedding=embedding,
+    print("🔹 Creating vector store (Chroma) with rate limit handling...")
+    vectordb = Chroma(
+        embedding_function=embedding,
         persist_directory=persist_directory
     )
 
-
+    import time
+    batch_size = 90  # Safely below the 100 request/minute limit
+    
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i : i + batch_size]
+        print(f"👉 Inserting chunks {i} to {i + len(batch)}...")
+        vectordb.add_documents(batch)
+        
+        # If there are still more chunks left, we must wait out the 1 minute quota
+        if i + batch_size < len(chunks):
+            print("⏳ Pausing for 60 seconds to reset Gemini Free Tier limits...")
+            time.sleep(60)
 
     print("✅ Vector store created successfully!")
 

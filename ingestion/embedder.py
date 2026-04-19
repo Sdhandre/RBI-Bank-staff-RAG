@@ -1,15 +1,9 @@
-from langchain_huggingface import HuggingFaceEmbeddings
-
-
+import os
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from dotenv import load_dotenv
+load_dotenv()
 def get_embedding_model():
-    """
-    Lightweight embedding model for RAG (suitable for low-memory environments)
-    """
-
-    embedding = HuggingFaceEmbeddings(
-        model_name="ibm-granite/granite-embedding-30m-english",
-        model_kwargs={"device": "cpu"},
-        encode_kwargs={"normalize_embeddings": True}
+    return GoogleGenerativeAIEmbeddings(
+        model="gemini-embedding-001",
+        google_api_key=os.environ["GEMINI_API_KEY"]
     )
-
-    return embedding

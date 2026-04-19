@@ -1,7 +1,7 @@
 from langchain_chroma import Chroma
 from ingestion.embedder import get_embedding_model
 
-PERSIST_DIRECTORY = "vector_store_ibm30b"
+PERSIST_DIRECTORY = "vector_store_gemini001"
 
 # ✅ Load ONCE (important for performance)
 _embedding = get_embedding_model()

@@ -1,6 +1,6 @@
-from loader import load_documents
-from chunker import split_documents
-from embedder import get_embedding_model
+from ingestion.loader import load_documents
+from ingestion.chunker import split_documents
+from ingestion.embedder import get_embedding_model
 from langchain_chroma import Chroma
 
 
@@ -8,7 +8,7 @@ from langchain_chroma import Chroma
 
 def build_vectorstore(
     data_path: str = "data/pdf",
-    persist_directory: str = "vector_store/"
+    persist_directory: str = "vector_store_ibm/"
 ):
     """
     Builds and persists the Chroma vector database.

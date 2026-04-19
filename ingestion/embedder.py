@@ -3,15 +3,12 @@ from langchain_huggingface import HuggingFaceEmbeddings
 
 def get_embedding_model():
     """
-    Loads and returns the embedding model.
-
-    Returns:
-        HuggingFaceEmbeddings: embedding model compatible with LangChain + Chroma
+    Lightweight embedding model for RAG (suitable for low-memory environments)
     """
 
     embedding = HuggingFaceEmbeddings(
-        model_name="BAAI/bge-small-en-v1.5",
-        model_kwargs={"device": "cpu"},   # change to "cuda" if GPU available
+        model_name="ibm-granite/granite-embedding-125m-english",
+        model_kwargs={"device": "cpu"},   # keep CPU for Render
         encode_kwargs={"normalize_embeddings": True}
     )
 

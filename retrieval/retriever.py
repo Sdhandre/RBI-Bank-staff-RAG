@@ -1,7 +1,7 @@
 from langchain_chroma import Chroma
 from ingestion.embedder import get_embedding_model
 
-PERSIST_DIRECTORY = "vector_store/"
+PERSIST_DIRECTORY = "vector_store_ibm/"
 
 # ✅ Load ONCE (important for performance)
 _embedding = get_embedding_model()
@@ -39,7 +39,7 @@ def retrieve(query: str, top_k: int = 3, debug: bool = False):
             continue
 
         # ❌ Skip weak matches (tune threshold if needed)
-        if score > 0.6:
+        if score > 0.8:
             continue
 
         seen.add(content)

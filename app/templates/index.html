@@ -65,6 +65,9 @@
 
   </aside>
 
+  <!-- Sidebar backdrop (mobile overlay) -->
+  <div id="sidebarBackdrop" class="sidebar-backdrop" aria-hidden="true"></div>
+
 
   <!-- ═══ MAIN PANEL ════════════════════════════════════════════════════════ -->
   <div class="main-panel">
@@ -72,6 +75,11 @@
     <!-- Top bar -->
     <header class="top-bar" role="banner">
       <div class="top-bar-left">
+        <button id="sidebarToggle" class="sidebar-toggle-btn" type="button" aria-label="Toggle sidebar" title="Toggle sidebar">
+          <span class="ham-line"></span>
+          <span class="ham-line"></span>
+          <span class="ham-line"></span>
+        </button>
         <span class="top-bar-title" id="currentSessionTitle">Bank Staff Assistant</span>
       </div>
       <div class="top-bar-right">
@@ -196,6 +204,66 @@
 
     </section>
 
+    <!-- Persistent topic panel (always visible) -->
+    <div class="topic-panel" id="topicPanel">
+      <button class="topic-panel-toggle" id="topicPanelToggle" type="button" aria-expanded="true" aria-controls="topicPanelBody">
+        <span class="topic-panel-label">
+          <span aria-hidden="true">💡</span> Suggested Topics
+        </span>
+        <svg class="topic-panel-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+      <div class="topic-panel-body" id="topicPanelBody">
+        <div class="topic-grid-compact" role="list">
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">📌</span><span class="topic-name">General Policy</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the eligibility criteria for joining RBI staff?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the rules for probation and confirmation of service?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What is the retirement age for RBI employees?</button>
+          </div>
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">💰</span><span class="topic-name">Salary &amp; Benefits</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">How is the pay structure defined for RBI staff?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What allowances are provided (housing, travel, medical)?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the rules for pension and gratuity?</button>
+          </div>
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">🕒</span><span class="topic-name">Leave &amp; Working Hours</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">How many types of leave are available to RBI staff?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What is the maximum duration of earned leave?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">Are there special provisions for maternity/paternity leave?</button>
+          </div>
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">📈</span><span class="topic-name">Promotions &amp; Transfers</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What is the process for staff promotions?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">How are transfers between branches regulated?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the criteria for career progression?</button>
+          </div>
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">⚖️</span><span class="topic-name">Conduct &amp; Discipline</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the rules regarding staff conduct and ethics?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What disciplinary actions can be taken for misconduct?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">How are grievances or appeals handled?</button>
+          </div>
+
+          <div class="topic-card" role="listitem">
+            <div class="topic-header"><span class="topic-emoji" aria-hidden="true">🏥</span><span class="topic-name">Welfare &amp; Miscellaneous</span></div>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">Schemes available for employees</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">Are there provisions for staff housing or loans?</button>
+            <button class="topic-sample" type="button" onclick="injectSample(this)">What are the rules for medical reimbursement?</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- Input -->
     <div class="input-bar" role="form" aria-label="Message input">
       <div class="model-select-wrapper">
@@ -209,6 +277,7 @@
           rows="1" maxlength="1000" aria-label="Type your question"></textarea>
         <span class="char-counter" id="charCounter" aria-live="polite">0 / 1000</span>
       </div>
+      <!-- Send button (shown when idle) -->
       <button id="sendBtn" class="send-btn" type="button" aria-label="Send message" title="Send (Enter)">
         <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -216,10 +285,18 @@
             stroke-linejoin="round" />
         </svg>
       </button>
+      <!-- Stop button (shown while generating) -->
+      <button id="stopBtn" class="stop-btn" type="button" aria-label="Stop generating" title="Stop generating" style="display:none;">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <rect x="5" y="5" width="14" height="14" rx="2" />
+        </svg>
+      </button>
     </div>
     <p class="input-hint">
       <kbd>Enter</kbd> to send &nbsp;·&nbsp; <kbd>Shift+Enter</kbd> for new line
+      &nbsp;·&nbsp; <span class="hint-note">⚡ Switch to <strong>OpenRouter</strong> if Gemini is slow</span>
     </p>
+
 
   </div><!-- /.main-panel -->
 

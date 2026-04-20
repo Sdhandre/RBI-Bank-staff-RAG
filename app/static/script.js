@@ -31,6 +31,10 @@ const statusDot       = document.getElementById("statusDot");
 const statusLabel     = document.getElementById("statusLabel");
 const toast           = document.getElementById("toast");
 const ctxMenu         = document.getElementById("ctxMenu");
+const stopBtn         = document.getElementById("stopBtn");
+const sidebarToggle   = document.getElementById("sidebarToggle");
+const sidebarEl       = document.querySelector(".sidebar");
+const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SESSION MANAGEMENT
@@ -212,6 +216,8 @@ async function confirmDelete(sid) {
 // CHAT
 // ═══════════════════════════════════════════════════════════════════════════════
 
+let abortController = null;  // tracks the active fetch so Stop can cancel it
+
 async function sendQuery() {
   if (isLoading) return;
 
@@ -243,11 +249,13 @@ async function sendQuery() {
   setLoading(true);
 
   try {
+    abortController = new AbortController();
     const provider = document.getElementById("modelSelect").value;
     const res  = await fetch(API.chat, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify({ query, session_id: currentSessionId, provider }),
+      signal:  abortController.signal,
     });
     const data = await res.json();
 
@@ -264,10 +272,15 @@ async function sendQuery() {
     if (active) currentTitle.textContent = active.textContent;
 
   } catch (err) {
-    appendErrorBubble(err.message || "Something went wrong.");
-    showToast("Failed to get answer.", "error");
-    setOffline();
+    if (err.name === "AbortError") {
+      appendErrorBubble("⛔ Generation stopped.");
+    } else {
+      appendErrorBubble(err.message || "Something went wrong.");
+      showToast("Failed to get answer.", "error");
+      setOffline();
+    }
   } finally {
+    abortController = null;
     setLoading(false);
     queryInput.focus();
   }
@@ -285,51 +298,6 @@ function showWelcomeScreen() {
         <div class="welcome-icon" aria-hidden="true">🏦</div>
         <h1 class="welcome-title">Bank Staff Assistant</h1>
         <p class="welcome-sub">Powered by RBI Document Intelligence</p>
-      </div>
-      <div class="topic-grid" role="list">
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">📌</span><span class="topic-name">General Policy</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">What are the eligibility criteria for joining RBI staff?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What are the rules for probation and confirmation of service?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What is the retirement age for RBI employees?</button>
-        </div>
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">💰</span><span class="topic-name">Salary &amp; Benefits</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">How is the pay structure defined for RBI staff?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What allowances are provided (housing, travel, medical)?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What are the rules for pension and gratuity?</button>
-        </div>
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">🕒</span><span class="topic-name">Leave &amp; Working Hours</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">How many types of leave are available to RBI staff?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What is the maximum duration of earned leave?</button>
-          <button class="topic-sample" onclick="injectSample(this)">Are there special provisions for maternity/paternity leave?</button>
-        </div>
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">📈</span><span class="topic-name">Promotions &amp; Transfers</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">What is the process for staff promotions?</button>
-          <button class="topic-sample" onclick="injectSample(this)">How are transfers between branches regulated?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What are the criteria for career progression?</button>
-        </div>
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">⚖️</span><span class="topic-name">Conduct &amp; Discipline</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">What are the rules regarding staff conduct and ethics?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What disciplinary actions can be taken for misconduct?</button>
-          <button class="topic-sample" onclick="injectSample(this)">How are grievances or appeals handled?</button>
-        </div>
-
-        <div class="topic-card" role="listitem">
-          <div class="topic-header"><span class="topic-emoji">🏥</span><span class="topic-name">Welfare &amp; Miscellaneous</span></div>
-          <button class="topic-sample" onclick="injectSample(this)">schemes available for employees</button>
-          <button class="topic-sample" onclick="injectSample(this)">Are there provisions for staff housing or loans?</button>
-          <button class="topic-sample" onclick="injectSample(this)">What are the rules for medical reimbursement?</button>
-        </div>
-
       </div>
     </div>`;
 }
@@ -454,10 +422,18 @@ function autoResize(el) {
 }
 
 function setLoading(loading) {
-  isLoading          = loading;
-  sendBtn.disabled   = loading;
+  isLoading           = loading;
   queryInput.disabled = loading;
-  loading ? appendTypingIndicator() : removeTypingIndicator();
+  if (loading) {
+    sendBtn.style.display = "none";
+    stopBtn.style.display = "flex";
+    appendTypingIndicator();
+  } else {
+    stopBtn.style.display = "none";
+    sendBtn.style.display = "flex";
+    sendBtn.disabled      = false;
+    removeTypingIndicator();
+  }
 }
 
 function setOffline() {
@@ -499,6 +475,10 @@ newChatBtn.addEventListener("click", newChat);
 
 sendBtn.addEventListener("click", sendQuery);
 
+stopBtn.addEventListener("click", () => {
+  if (abortController) abortController.abort();
+});
+
 queryInput.addEventListener("keydown", (e) => {
   if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendQuery(); }
 });
@@ -520,6 +500,72 @@ document.addEventListener("click", (e) => {
   if (!ctxMenu.contains(e.target)) ctxMenu.classList.remove("open");
 });
 
+// ─── Topic panel collapse / expand ───────────────────────────────────────────
+const topicPanel       = document.getElementById("topicPanel");
+const topicPanelToggle = document.getElementById("topicPanelToggle");
+
+topicPanelToggle.addEventListener("click", () => {
+  const collapsed = topicPanel.classList.toggle("collapsed");
+  topicPanelToggle.setAttribute("aria-expanded", String(!collapsed));
+});
+
+// Default: collapse on mobile to save screen space
+if (window.innerWidth <= 860) {
+  topicPanel.classList.add("collapsed");
+  topicPanelToggle.setAttribute("aria-expanded", "false");
+}
+
+// ─── Sidebar toggle (hamburger) ───────────────────────────────────────────────
+const MOBILE_BP = 860;
+
+function isMobile() { return window.innerWidth <= MOBILE_BP; }
+
+function openSidebar() {
+  sidebarEl.classList.add("open");
+  sidebarBackdrop.classList.add("open");
+  document.body.classList.remove("sidebar-collapsed");
+}
+
+function closeSidebar() {
+  if (isMobile()) {
+    sidebarEl.classList.remove("open");
+    sidebarBackdrop.classList.remove("open");
+  } else {
+    document.body.classList.add("sidebar-collapsed");
+  }
+}
+
+function toggleSidebar() {
+  if (isMobile()) {
+    sidebarEl.classList.contains("open") ? closeSidebar() : openSidebar();
+  } else {
+    document.body.classList.toggle("sidebar-collapsed");
+  }
+}
+
+sidebarToggle.addEventListener("click", toggleSidebar);
+sidebarBackdrop.addEventListener("click", closeSidebar);
+
+// Close mobile sidebar when a session is opened
+const _origOpenSession = openSession;
+window.openSession = async function(sid, title) {
+  if (isMobile()) closeSidebar();
+  return _origOpenSession(sid, title);
+};
+
+// Close mobile sidebar when New Chat is clicked
+newChatBtn.addEventListener("click", () => { if (isMobile()) closeSidebar(); });
+
+// On resize: clean up states that don't apply to the new breakpoint
+window.addEventListener("resize", () => {
+  if (!isMobile()) {
+    sidebarEl.classList.remove("open");
+    sidebarBackdrop.classList.remove("open");
+  } else {
+    document.body.classList.remove("sidebar-collapsed");
+  }
+});
+
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // INIT
@@ -529,12 +575,7 @@ document.addEventListener("click", (e) => {
   showWelcomeScreen();            // show welcome immediately
   queryInput.focus();
 
-  const sessions = await loadSessions();
-
-  if (sessions.length > 0) {
-    // Load the most recent session automatically
-    await openSession(sessions[0].id, sessions[0].title);
-  }
+  await loadSessions();   // populate sidebar, but don't open any session
 
   checkHealth();
   setInterval(checkHealth, 30_000);

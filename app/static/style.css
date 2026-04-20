@@ -63,6 +63,13 @@ body {
   display: flex;
 }
 
+/* ── Sidebar collapse (desktop) ─────────────────────────────────────────────── */
+body.sidebar-collapsed .sidebar {
+  width: 0;
+  border-right-width: 0;
+  overflow: hidden;
+}
+
 /* scrollbar */
 ::-webkit-scrollbar       { width: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -281,11 +288,44 @@ body {
   font-size: .9rem;
   font-weight: 600;
   color: var(--txt-2);
-  max-width: 480px;
+  max-width: 320px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Hamburger button */
+.sidebar-toggle-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  padding: 7px 8px;
+  flex-shrink: 0;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.sidebar-toggle-btn:hover { background: var(--bg-card); border-color: var(--accent); }
+.ham-line {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--txt-2);
+  border-radius: 99px;
+  transition: background var(--dur) var(--ease);
+}
+.sidebar-toggle-btn:hover .ham-line { background: var(--accent-light); }
+
 
 .status-badge {
   display: flex;
@@ -586,6 +626,27 @@ body {
 .send-btn:active:not(:disabled) { transform: scale(.97); }
 .send-btn:disabled { background: var(--bg-card); box-shadow: none; opacity:.45; cursor:not-allowed; }
 
+/* Stop button */
+.stop-btn {
+  width: 46px; height: 46px;
+  border-radius: var(--r-md);
+  background: rgba(239,68,68,.12);
+  border: 1px solid rgba(239,68,68,.35);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--red);
+  transition: all var(--dur) var(--ease);
+  animation: stopPulse 1.4s infinite;
+}
+.stop-btn svg { width: 16px; height: 16px; }
+.stop-btn:hover { background: rgba(239,68,68,.22); border-color: var(--red); transform: scale(1.06); }
+.stop-btn:active { transform: scale(.95); }
+@keyframes stopPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+  50%      { box-shadow: 0 0 0 5px rgba(239,68,68,.0); }
+}
+
 .input-hint {
   text-align: center;
   font-size: .67rem;
@@ -601,6 +662,8 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-size: .7em;
 }
+.hint-note { color: var(--txt-3); }
+.hint-note strong { color: var(--amber); font-weight: 600; }
 
 
 /* ══════════════════════════════════════════════════════════════════════════════
@@ -659,15 +722,130 @@ body {
 
 
 /* ══════════════════════════════════════════════════════════════════════════════
-   RESPONSIVE
+   PERSISTENT TOPIC PANEL
    ══════════════════════════════════════════════════════════════════════════════ */
+.topic-panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  background: rgba(13,17,23,.92);
+}
+
+.topic-panel-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--txt-3);
+  font-family: inherit;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .4px;
+  text-transform: uppercase;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.topic-panel-toggle:hover { color: var(--accent-light); background: rgba(59,130,246,.04); }
+
+.topic-panel-label { display: flex; align-items: center; gap: 6px; }
+
+.topic-panel-chevron {
+  transition: transform .25s var(--ease);
+  color: inherit;
+  flex-shrink: 0;
+}
+.topic-panel.collapsed .topic-panel-chevron { transform: rotate(-90deg); }
+
+.topic-panel-body {
+  overflow: hidden;
+  max-height: 260px;           /* enough to show all 6 cards */
+  overflow-y: auto;
+  transition: max-height .3s var(--ease), opacity .25s var(--ease);
+  opacity: 1;
+}
+.topic-panel.collapsed .topic-panel-body {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Compact 3-col grid inside the panel */
+.topic-grid-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 6px 24px 14px;
+}
+
+/* Reuse .topic-card but slightly smaller inside panel */
+.topic-panel .topic-card {
+  padding: 10px 12px 8px;
+  gap: 4px;
+}
+.topic-panel .topic-sample {
+  font-size: .72rem;
+  padding: 5px 8px;
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   RESPONSIVE  +  SIDEBAR TOGGLE
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Desktop: sidebar is open by default, collapsible ───────────────────────── */
+.sidebar {
+  transition: width var(--dur) var(--ease), border-right-width var(--dur) var(--ease);
+}
+
+/* Mobile backdrop */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(2px);
+  z-index: 199;
+  opacity: 0;
+  transition: opacity .25s var(--ease);
+}
+.sidebar-backdrop.open {
+  display: block;
+  opacity: 1;
+}
+
+/* ── ≤ 860px : sidebar becomes off-canvas overlay ───────────────────────────── */
 @media (max-width: 860px) {
-  .sidebar { display: none; }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;     /* full height, left side */
+    z-index: 200;
+    width: var(--sidebar-w);
+    transform: translateX(-100%);
+    transition: transform .28s var(--ease);
+    box-shadow: none;
+  }
+  /* open state on mobile */
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 6px 0 32px rgba(0,0,0,.55);
+  }
+  /* desktop collapse class has no effect on mobile */
+  body.sidebar-collapsed .sidebar {
+    width: var(--sidebar-w);
+    border-right-width: 1px;
+  }
+
   .topic-grid { grid-template-columns: 1fr 1fr; }
+  .topic-grid-compact { grid-template-columns: 1fr 1fr; padding: 6px 14px 12px; }
+  .topic-panel-toggle { padding: 8px 14px; }
   .chat-window { padding: 20px 16px; }
   .input-bar   { padding: 12px 14px 8px; }
 }
+
 @media (max-width: 540px) {
-  .topic-grid { grid-template-columns: 1fr; }
+  .topic-grid    { grid-template-columns: 1fr; }
+  .topic-grid-compact { grid-template-columns: 1fr; }
   .welcome-title { font-size: 1.3rem; }
+  .top-bar       { padding: 0 14px; }
 }

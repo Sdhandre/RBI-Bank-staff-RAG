@@ -296,21 +296,21 @@ uv run test_integration.py  # End-to-end integration test
 
 ## 🚀 Deployment
 
-The app is **Render-compatible**. Set the following environment variables in Render:
+The app is **Railway-compatible**. Set the following environment variables in Railway:
 
 | Variable | Value |
 |---|---|
 | `GEMINI_API_KEY` | Your Gemini API key |
 | `OPENROUTER_API_KEY` | Your OpenRouter API key |
 | `MONGO_URI` | MongoDB Atlas connection string |
-| `PORT` | Set automatically by Render |
+| `PORT` | Set automatically by Railway |
 
 Start command:
 ```bash
 gunicorn app.app:app
 ```
 
-> ⚠️ The pre-built vector store (`vector_store_gemini001/`) must be committed to the repo or uploaded separately, as Render's free tier has no persistent disk.
+> ⚠️ The pre-built vector store (`vector_store_gemini001/`) must be committed to the repo or uploaded separately, as Railway's free tier has no persistent disk.
 
 ---
 

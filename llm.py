@@ -80,8 +80,8 @@ def generate_answer(query: str, chunks: List[Dict], history_text: str = "", prov
     if not chunks:
         return NO_ANSWER_MSG
 
-    # Optional: filter weak retrieval
-    if all(chunk["score"] > 0.6 for chunk in chunks):
+    # Optional: filter weak retrieval (threshold tuned for NVIDIA embeddings)
+    if all(chunk["score"] > 1.4 for chunk in chunks):
         return NO_ANSWER_MSG
 
     context = build_context(chunks)

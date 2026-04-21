@@ -8,7 +8,7 @@ from langchain_chroma import Chroma
 
 def build_vectorstore(
     data_path: str = "data/pdf",
-    persist_directory: str = "vector_store_gemini001"
+    persist_directory: str = "vector_store_nvidia"
 ):
     """
     Builds and persists the Chroma vector database.

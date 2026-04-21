@@ -1,9 +1,11 @@
 import os
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_nvidia_ai_endpoints import NVIDIAEmbeddings
 from dotenv import load_dotenv
 load_dotenv()
+
 def get_embedding_model():
-    return GoogleGenerativeAIEmbeddings(
-        model="gemini-embedding-001",
-        google_api_key=os.environ["GEMINI_API_KEY"]
+    return NVIDIAEmbeddings(
+        model="nvidia/llama-nemotron-embed-1b-v2",
+        api_key=os.environ["NVIDIA_API_KEY"],
+        truncate="END"
     )

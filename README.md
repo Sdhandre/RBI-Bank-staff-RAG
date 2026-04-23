@@ -113,13 +113,13 @@ Multiple vector stores were built during development — each uses a different e
 | Directory | Embedding Model |
 |---|---|
 | `vector_store_gemini/` | `models/embedding-001` (Gemini) |
-| `vector_store_gemini001/` ✅ **Active** | `gemini-embedding-001` (Gemini, latest) |
+| `vector_store_gemini001/`| `gemini-embedding-001` (Gemini, latest) |
 | `vector_store_minilm/` | `all-MiniLM-L6-v2` (Sentence Transformers) |
 | `vector_store_ibm/` | IBM Granite Embedding |
 | `vector_store_ibm30b/` | IBM Granite Embedding 30B |
 | `vector_store/` | Initial prototype |
 
-> **Currently active:** `vector_store_gemini001` — Google's `gemini-embedding-001` model, offering the best retrieval quality for this domain.
+> **Currently active:** `vector_store_nvidia` — Nvidia's ` ` model, offering the best retrieval quality for this domain.
 
 ---
 

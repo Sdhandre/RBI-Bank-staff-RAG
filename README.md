@@ -68,7 +68,7 @@ User Query
 |---|---|
 | `loader.py` | Recursively loads all PDF files from `data/pdf/` using **PyMuPDF** |
 | `chunker.py` | Splits loaded documents into overlapping chunks (`600 chars`, `150 overlap`) using `RecursiveCharacterTextSplitter` |
-| `embedder.py` | Generates dense vector embeddings using **Google `gemini-embedding-001`** |
+| `embedder.py` | Generates dense vector embeddings using **Nvidia `llama-nemotron-embed-1b-v2`** |
 | `build_index.py` | Orchestrates the full ingestion pipeline and persists the vector store to disk |
 
 **Chunking strategy:**
@@ -112,6 +112,7 @@ Multiple vector stores were built during development — each uses a different e
 
 | Directory | Embedding Model |
 |---|---|
+| `vector_store_nvidia/` | `llama-nemotron-embed-1b-v2` (Nvidia) |
 | `vector_store_gemini/` | `models/embedding-001` (Gemini) |
 | `vector_store_gemini001/`| `gemini-embedding-001` (Gemini, latest) |
 | `vector_store_minilm/` | `all-MiniLM-L6-v2` (Sentence Transformers) |
@@ -177,7 +178,7 @@ The app supports **two providers**, switchable at runtime in the UI:
 | Layer | Technology |
 |---|---|
 | **LLM** | Google Gemini (`gemini-3-flash-preview`) via `langchain-google-genai` |
-| **Embeddings** | Google `gemini-embedding-001` via `langchain-google-genai` |
+| **Embeddings** | Nvidia `llama-nemotron-embed-1b-v2`|
 | **Vector Store** | ChromaDB (`langchain-chroma`) — persisted to disk |
 | **Orchestration** | LangChain (prompt templates, chains, output parsers) |
 | **PDF Parsing** | PyMuPDF (`pymupdf`) |
@@ -227,7 +228,7 @@ data/pdf/
 uv run ingestion/build_index.py
 ```
 
-> ⏳ This will embed all PDFs and save the vector store to `vector_store_gemini001/`. If you have many documents, it will pause between batches due to Gemini API rate limits.
+> ⏳ This will embed all PDFs and save the vector store to `vector_store_nvidia`. 
 
 ### 5. Run the App
 
@@ -255,7 +256,7 @@ Bank_staff_RAG/
 ├── ingestion/
 │   ├── loader.py               # PDF loading (PyMuPDF)
 │   ├── chunker.py              # Document chunking (RecursiveTextSplitter)
-│   ├── embedder.py             # Embedding model (Gemini)
+│   ├── embedder.py             # Embedding model (llama-nemotron-embed-1b-v2)
 │   └── build_index.py          # Full ingestion pipeline runner
 │
 ├── retrieval/
@@ -266,7 +267,8 @@ Bank_staff_RAG/
 │
 ├── data/pdf/                   # 📂 Place your RBI PDFs here
 │
-├── vector_store_gemini001/     # ✅ Active Chroma vector DB
+├── vector_store_nvidia/        # (Active)
+├── vector_store_gemini001/     # (Experimental)
 ├── vector_store_minilm/        # (Experimental — MiniLM embeddings)
 ├── vector_store_ibm/           # (Experimental — IBM Granite)
 ├── vector_store_gemini/        # (Experimental — older Gemini embeddings)
@@ -310,7 +312,7 @@ Start command:
 gunicorn app.app:app
 ```
 
-> ⚠️ The pre-built vector store (`vector_store_gemini001/`) must be committed to the repo or uploaded separately, as Railway's free tier has no persistent disk.
+> ⚠️ The pre-built vector store must be committed to the repo or uploaded separately, as Railway's free tier has no persistent disk.
 
 ---
 

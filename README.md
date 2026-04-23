@@ -119,7 +119,7 @@ Multiple vector stores were built during development — each uses a different e
 | `vector_store_ibm30b/` | IBM Granite Embedding 30B |
 | `vector_store/` | Initial prototype |
 
-> **Currently active:** `vector_store_nvidia` — Nvidia's ` ` model, offering the best retrieval quality for this domain.
+> **Currently active:** `vector_store_nvidia` — Nvidia's `llama-nemotron-embed-1b-v2` model, offering the best retrieval quality for this domain.
 
 ---
 

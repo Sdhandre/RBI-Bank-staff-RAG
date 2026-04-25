@@ -1,3 +1,7 @@
+import time
+import requests.exceptions
+import urllib3.exceptions
+
 from langchain_chroma import Chroma
 from ingestion.embedder import get_embedding_model
 
@@ -9,6 +13,30 @@ _vectordb = Chroma(
     persist_directory=PERSIST_DIRECTORY,
     embedding_function=_embedding
 )
+
+# Transient errors from NVIDIA NIM that are safe to retry
+_RETRYABLE = (
+    requests.exceptions.ChunkedEncodingError,
+    urllib3.exceptions.IncompleteRead,
+    urllib3.exceptions.ProtocolError,
+    ConnectionError,
+    TimeoutError,
+)
+
+
+def _search_with_retry(query: str, k: int, retries: int = 3, backoff: float = 1.5):
+    """Run similarity_search_with_score with exponential-backoff retries."""
+    last_exc = None
+    for attempt in range(1, retries + 1):
+        try:
+            return _vectordb.similarity_search_with_score(query, k=k)
+        except _RETRYABLE as exc:
+            last_exc = exc
+            wait = backoff ** attempt
+            print(f"[retriever] NVIDIA embedding error (attempt {attempt}/{retries}): "
+                  f"{type(exc).__name__} — retrying in {wait:.1f}s…")
+            time.sleep(wait)
+    raise last_exc
 
 
 def retrieve(query: str, top_k: int = 3, debug: bool = False):
@@ -25,8 +53,8 @@ def retrieve(query: str, top_k: int = 3, debug: bool = False):
     # ✅ Normalize query
     query = query.lower().strip()
 
-    # ✅ Fetch more candidates for better filtering
-    results = _vectordb.similarity_search_with_score(query, k=top_k * 3)
+    # ✅ Fetch more candidates for better filtering (with retry on NVIDIA network drops)
+    results = _search_with_retry(query, k=top_k * 3)
 
     seen = set()
     filtered = []

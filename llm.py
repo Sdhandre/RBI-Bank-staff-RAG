@@ -1,7 +1,9 @@
 from typing import List, Dict
+import warnings
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
@@ -15,6 +17,7 @@ load_dotenv()  # Load environment variables from .env file
 
 GEMINI_MODEL = "gemini-3-flash-preview"
 OPENROUTER_MODEL = "google/gemini-2.5-flash"  # Use OpenRouter model string format
+DEEPSEEK_MODEL = "deepseek-ai/deepseek-v4-flash"       # NVIDIA NIM — DeepSeek v4 Flash
 TEMPERATURE = 0.2                # low = factual
 MAX_OUTPUT_TOKENS = 1024
 
@@ -28,8 +31,25 @@ NO_ANSWER_MSG = (
 # LOAD LLM
 # ------------------------------------------------------------------
 
-def get_llm(provider="gemini"):
-    if provider == "openrouter":
+def get_llm(provider="deepseek"):
+    if provider == "deepseek":
+        # Suppress "type is unknown" warning — model works fine despite not being
+        # in langchain_nvidia_ai_endpoints' internal registry.
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".*type is unknown.*",
+                category=UserWarning,
+                module="langchain_nvidia_ai_endpoints",
+            )
+            return ChatNVIDIA(
+                model=DEEPSEEK_MODEL,
+                api_key=os.getenv("NVIDIA_API_KEY"),
+                temperature=TEMPERATURE,
+                top_p=0.95,
+                max_tokens=MAX_OUTPUT_TOKENS,
+            )
+    elif provider == "openrouter":
         return ChatOpenAI(
             model=OPENROUTER_MODEL,
             temperature=TEMPERATURE,

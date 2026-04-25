@@ -22,8 +22,7 @@ TEMPERATURE = 0.2                # low = factual
 MAX_OUTPUT_TOKENS = 1024
 
 NO_ANSWER_MSG = (
-    "I don't know. The documents available do not contain enough "
-    "information to answer this question."
+    "This isn't covered in our policy documents. Please contact a branch representative."
 )
 
 

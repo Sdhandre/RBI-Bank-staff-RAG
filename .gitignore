@@ -146,3 +146,5 @@ data/vector_store/
 .Trashes
 ehthumbs.db
 Thumbs.db
+export_to_docx.py
+~$nk_Staff_RAG_Submission.docx

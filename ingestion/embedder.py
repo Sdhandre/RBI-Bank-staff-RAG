@@ -9,3 +9,4 @@ def get_embedding_model():
         api_key=os.environ["NVIDIA_API_KEY"],
         truncate="END"
     )
+00

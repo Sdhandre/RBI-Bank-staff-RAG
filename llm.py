@@ -17,7 +17,7 @@ load_dotenv()  # Load environment variables from .env file
 
 GEMINI_MODEL = "gemini-3-flash-preview"
 OPENROUTER_MODEL = "google/gemini-2.5-flash"  # Use OpenRouter model string format
-DEEPSEEK_MODEL = "deepseek-ai/deepseek-v4-flash"       # NVIDIA NIM — DeepSeek v4 Flash
+MISTRAL_MODEL = "mistralai/mistral-nemotron"         # NVIDIA NIM — Mistral Nemotron
 TEMPERATURE = 0.2                # low = factual
 MAX_OUTPUT_TOKENS = 1024
 
@@ -30,11 +30,11 @@ NO_ANSWER_MSG = (
 # LOAD LLM
 # ------------------------------------------------------------------
 
-def get_llm(provider="deepseek"):
-    if provider == "deepseek":
+def get_llm(provider="mistral"):
+    if provider == "mistral":
         # Suppress "type is unknown" warning — model works fine despite not being
         # in langchain_nvidia_ai_endpoints' internal registry.
-        with warnings.catch_warnings():
+        with warnings.catch_warnings():  # Mistral Nemotron via NVIDIA NIM
             warnings.filterwarnings(
                 "ignore",
                 message=".*type is unknown.*",
@@ -42,7 +42,7 @@ def get_llm(provider="deepseek"):
                 module="langchain_nvidia_ai_endpoints",
             )
             return ChatNVIDIA(
-                model=DEEPSEEK_MODEL,
+                model=MISTRAL_MODEL,
                 api_key=os.getenv("NVIDIA_API_KEY"),
                 temperature=TEMPERATURE,
                 top_p=0.95,
